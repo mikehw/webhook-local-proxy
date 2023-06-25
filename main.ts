@@ -1,5 +1,5 @@
 import { parse } from "https://deno.land/std@0.182.0/flags/mod.ts";
-const version = "1.0.0";
+const version = "1.0.1";
 import { EventSource } from "https://deno.land/x/eventsource@v0.0.3/mod.ts";
 
 const flags = parse(Deno.args, {
@@ -43,13 +43,19 @@ sse.onmessage = async (e) => {
     ts: string;
     url: string;
   };
-  const result = await fetch(proxyTo, {
-    method: webhook.method,
-    headers: webhook.headers,
-    body: webhook.body || undefined,
-  });
-  console.log(`Forwarded webhook to ${proxyTo}, got response ${result.status}`);
-  console.log(await result.text());
+  try {
+    const result = await fetch(proxyTo, {
+      method: webhook.method,
+      headers: webhook.headers,
+      body: webhook.body || undefined,
+    });
+    console.log(
+      `Forwarded webhook to ${proxyTo}, got response ${result.status}`,
+    );
+    console.log(await result.text());
+  } catch (e: unknown) {
+    console.error(`Error forwarding webhook to ${proxyTo}. Error: ${e}`);
+  }
 };
 sse.onopen = () => {
   console.log("Connected to webhooks.deno.dev, waiting for webhooks...");
